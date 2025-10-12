@@ -1,19 +1,41 @@
-#include<iostream>
-#include<string>
+#include <iostream>
 using namespace std;
-void powerset(string a,int index,string current) {
-    if (index == a.size()) {
-        cout << current << endl;
-        return;
+
+struct Frame {
+    int m, n, stage;
+};
+const int MAX = 100000;
+Frame st[MAX];
+int top = -1;
+
+int A_iter(int m, int n) {
+    int result = 0;
+    top = -1;
+    st[++top] = { m, n, 0 };
+    while (top >= 0) {
+        Frame cur = st[top--];
+
+        if (cur.m == 0) {
+            result = cur.n + 1;
+            continue;
+        }
+
+        if (cur.n == 0) {
+            st[++top] = { cur.m - 1, 1, 0 };
+            continue;
+        }
+
+        if (cur.stage == 0) {
+            st[++top] = { cur.m, cur.n, 1 };
+            st[++top] = { cur.m, cur.n - 1, 0 };
+        } else {
+            st[++top] = { cur.m - 1, result, 0 };
+        }
     }
-    else {
-        powerset(a, index + 1, current);
-        powerset(a, index + 1, current + a[index]);
-    }
+    return result;
 }
+
 int main() {
-    string s;
-    cin >>s;
-    powerset(s,0,"");
+    cout << A_iter(1, 2); // 預期輸出：4
     return 0;
 }
