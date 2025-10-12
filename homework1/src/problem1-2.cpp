@@ -1,41 +1,51 @@
 #include <iostream>
 using namespace std;
 
-struct Frame {
-    int m, n, stage;
+
+struct AckFrame {
+    int mValue;     
+    int nValue;    
+    int stageFlag; 
 };
-const int MAX = 100000;
-Frame st[MAX];
-int top = -1;
 
-int A_iter(int m, int n) {
+const int MAX_STACK_SIZE = 100000;
+AckFrame callStack[MAX_STACK_SIZE]; 
+int stackTop = -1;                   
+
+// 非遞迴 Ackermann 函數
+int AckermannIterative(int m, int n) {
     int result = 0;
-    top = -1;
-    st[++top] = { m, n, 0 };
-    while (top >= 0) {
-        Frame cur = st[top--];
+    stackTop = -1;  
+    callStack[++stackTop] = { m, n, 0 }; 
 
-        if (cur.m == 0) {
-            result = cur.n + 1;
+    while (stackTop >= 0) {
+        AckFrame current = callStack[stackTop--]; 
+
+        if (current.mValue == 0) {
+            result = current.nValue + 1;
             continue;
         }
 
-        if (cur.n == 0) {
-            st[++top] = { cur.m - 1, 1, 0 };
+        if (current.nValue == 0) {
+         
+            callStack[++stackTop] = { current.mValue - 1, 1, 0 };
             continue;
         }
 
-        if (cur.stage == 0) {
-            st[++top] = { cur.m, cur.n, 1 };
-            st[++top] = { cur.m, cur.n - 1, 0 };
+        if (current.stageFlag == 0) {
+            
+            callStack[++stackTop] = { current.mValue, current.nValue, 1 };
+            callStack[++stackTop] = { current.mValue, current.nValue - 1, 0 };
         } else {
-            st[++top] = { cur.m - 1, result, 0 };
+         
+            callStack[++stackTop] = { current.mValue - 1, result, 0 };
         }
     }
+
     return result;
 }
 
 int main() {
-    cout << A_iter(1, 2); // 預期輸出：4
+    cout << AckermannIterative(1, 2);
     return 0;
 }
