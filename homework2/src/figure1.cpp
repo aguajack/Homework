@@ -1,109 +1,142 @@
 #include <iostream>
-#include <vector>
+#include <algorithm>
 using namespace std;
 
-// ===== 前置宣告 =====
-class Polynomial;
+class Polynomial;  // 前置宣告
 
-// ===== Term 類別：表示多項式中的單一項 =====
+
 class Term {
-public:
-    float coef;  // 係數
-    int exp;     // 次方
-
-    Term(float c = 0, int e = 0) {
-        coef = c;
-        exp = e;
-    }
+    friend class Polynomial;  
+    friend ostream& operator<<(ostream&, const Polynomial&);
+private:
+    float coef; // 係數
+    int exp;    // 次方
 };
 
-// ===== Polynomial 類別：表示整個多項式 =====
+
 class Polynomial {
 private:
-    vector<Term> terms;  // 儲存多項式所有的項目
+    Term* termArray; 
+    int capacity;    
+    int terms;       
 public:
-    void newTerm(const float theCoef, const int theExp);
-    Polynomial Add(const Polynomial& b);
-    friend istream& operator>>(istream& is, Polynomial& poly);
-    friend ostream& operator<<(ostream& os, const Polynomial& poly);
+    Polynomial();                      
+    ~Polynomial();                     
+    Polynomial(const Polynomial&);     // 拷貝建構子
+    Polynomial& operator=(const Polynomial&);  // 指定運算子
+
+    void newTerm(const float, const int);
+    Polynomial Add(const Polynomial& b) const;
+    friend istream& operator>>(istream&, Polynomial&);
+    friend ostream& operator<<(ostream&, const Polynomial&);
 };
 
-// ===== 多載輸入運算子 =====
+
+Polynomial::Polynomial() {
+    capacity = 2;
+    terms = 0;
+    termArray = new Term[capacity];
+}
+
+
+Polynomial::~Polynomial() {
+    delete[] termArray;
+}
+
+// ===== 拷貝建構子 =====
+Polynomial::Polynomial(const Polynomial& other) {
+    capacity = other.capacity;
+    terms = other.terms;
+    termArray = new Term[capacity];
+    copy(other.termArray, other.termArray + terms, termArray);
+}
+
+
+Polynomial& Polynomial::operator=(const Polynomial& other) {
+    if (this == &other) return *this;
+    delete[] termArray;
+    capacity = other.capacity;
+    terms = other.terms;
+    termArray = new Term[capacity];
+    copy(other.termArray, other.termArray + terms, termArray);
+    return *this;
+}
+
+
+void Polynomial::newTerm(const float theCoef, const int theExp) {
+    if (theCoef == 0) return;
+    if (terms == capacity) {
+        capacity *= 2;
+        Term* temp = new Term[capacity];
+        copy(termArray, termArray + terms, temp);
+        delete[] termArray;
+        termArray = temp;
+    }
+    termArray[terms].coef = theCoef;
+    termArray[terms].exp = theExp;
+    terms++;
+}
+
+
 istream& operator>>(istream& is, Polynomial& poly) {
     int n;
-    is >> n; // 讀入非零項的數量
+    is >> n;  // 輸入項數
     for (int i = 0; i < n; i++) {
         float c;
         int e;
         is >> c >> e;
         poly.newTerm(c, e);
     }
+  
+   
     return is;
 }
 
-// ===== 多載輸出運算子 =====
-// ⚠️ 這裡改成沒有空格
+
 ostream& operator<<(ostream& os, const Polynomial& poly) {
-    for (int i = 0; i < poly.terms.size(); i++) {
-        os << poly.terms[i].coef << "X^" << poly.terms[i].exp;
-        if (i != poly.terms.size() - 1) // 項與項之間不加空格
+    for (int i = 0; i < poly.terms; i++) {
+        if (i > 0 && poly.termArray[i].coef >= 0)
             os << "+";
+        os << poly.termArray[i].coef << "X^" << poly.termArray[i].exp;
     }
     return os;
 }
 
-// ===== 新增多項式項目 =====
-void Polynomial::newTerm(const float theCoef, const int theExp) {
-    if (theCoef != 0)
-        terms.push_back(Term(theCoef, theExp));
-}
 
-// ===== 多項式相加 =====
-Polynomial Polynomial::Add(const Polynomial& b) {
+Polynomial Polynomial::Add(const Polynomial& b) const {
     Polynomial c;
-    int i = 0, j = 0;
-
-    while (i < terms.size() && j < b.terms.size()) {
-        if (terms[i].exp == b.terms[j].exp) {
-            float sum = terms[i].coef + b.terms[j].coef;
+    int aPos = 0, bPos = 0;
+    while (aPos < terms && bPos < b.terms) {
+        if (termArray[aPos].exp == b.termArray[bPos].exp) {
+            float sum = termArray[aPos].coef + b.termArray[bPos].coef;
             if (sum != 0)
-                c.newTerm(sum, terms[i].exp);
-            i++;
-            j++;
+                c.newTerm(sum, termArray[aPos].exp);
+            aPos++;
+            bPos++;
         }
-        else if (terms[i].exp > b.terms[j].exp) {
-            c.newTerm(terms[i].coef, terms[i].exp);
-            i++;
+        else if (termArray[aPos].exp > b.termArray[bPos].exp) {
+            c.newTerm(termArray[aPos].coef, termArray[aPos].exp);
+            aPos++;
         }
         else {
-            c.newTerm(b.terms[j].coef, b.terms[j].exp);
-            j++;
+            c.newTerm(b.termArray[bPos].coef, b.termArray[bPos].exp);
+            bPos++;
         }
     }
-
-    // 加入剩餘項
-    while (i < terms.size()) {
-        c.newTerm(terms[i].coef, terms[i].exp);
-        i++;
-    }
-    while (j < b.terms.size()) {
-        c.newTerm(b.terms[j].coef, b.terms[j].exp);
-        j++;
-    }
+    while (aPos < terms)
+        c.newTerm(termArray[aPos].coef, termArray[aPos++].exp);
+    while (bPos < b.terms)
+        c.newTerm(b.termArray[bPos].coef, b.termArray[bPos++].exp);
 
     return c;
 }
 
-// ===== 主程式 =====
+
 int main() {
     Polynomial A, B, C;
-
     cin >> A;
     cin >> B;
-
     C = A.Add(B);
-
-    cout << C << endl;  // 最後輸出結果
-
+    cout << C << endl;
     return 0;
 }
