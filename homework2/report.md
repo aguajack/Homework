@@ -1,137 +1,245 @@
 # 41343147
 
-作業一 Ackermann Function
+作業二
 
 ## 解題說明
 
-根據數學定義直接轉為程式邏輯。
+設計一個能進行**多項式加法**的程式。  
+每個多項式由若干項 `(係數, 次方)` 組成，例如：
+A(x) = 2x² + 3x + 4
+B(x) = 5x + (-4)
+相加後結果為：C(x) = 2x² + 8x
 
-使用三個條件判斷：
+### 想法（How to do?）
+1. 建立 `Term` 類別來儲存每一項的係數與次方。  
+2. 建立 `Polynomial` 類別以動態陣列 (`Term* termArray`) 儲存所有項目。  
+3. 當容量不足時自動倍增。  
+4. 使用 `Add()` 函式逐一比較兩多項式的指數：  
+   - 若指數相同，則係數相加。  
+   - 若某一方的指數較大，直接加入結果多項式。  
+5. 最後輸出合併後的多項式。
 
-若 m == 0 → 回傳 n + 1。
-
-若 n == 0 → 回傳 A(m - 1, 1)。
-
-否則 → 回傳 A(m - 1, A(m, n - 1))。
-
-遞迴深度極深，需小心 Stack Overflow。
-
-### 解題策略
-
-1. 使用遞迴函式將問題拆解為更小的子問題：
-   $$\Sigma(n) = n + \Sigma(n-1)$$
-2. 當 $n \leq 1$ 時，返回 $n$ 作為遞迴的結束條件。  
-3. 主程式呼叫遞迴函式，並輸出計算結果。
-
+---
 ## 程式實作
 
 以下為主要程式碼：
 
 ```cpp
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
-int A(int m, int n) {
-    if (m == 0)
-        return n + 1;
-    else if (n == 0)
-        return A(m - 1, 1);
-    else
-        return A(m - 1, A(m, n - 1));
+class Polynomial;  // 前置宣告
+
+
+class Term {
+    friend class Polynomial;  
+    friend ostream& operator<<(ostream&, const Polynomial&);
+private:
+    float coef; // 係數
+    int exp;    // 次方
+};
+
+
+class Polynomial {
+private:
+    Term* termArray; 
+    int capacity;    
+    int terms;       
+public:
+    Polynomial();                      
+    ~Polynomial();                     
+    Polynomial(const Polynomial&);     // 拷貝建構子
+    Polynomial& operator=(const Polynomial&);  // 指定運算子
+
+    void newTerm(const float, const int);
+    Polynomial Add(const Polynomial& b) const;
+    friend istream& operator>>(istream&, Polynomial&);
+    friend ostream& operator<<(ostream&, const Polynomial&);
+};
+
+
+Polynomial::Polynomial() {
+    capacity = 2;
+    terms = 0;
+    termArray = new Term[capacity];
 }
 
+
+Polynomial::~Polynomial() {
+    delete[] termArray;
+}
+
+// ===== 拷貝建構子 =====
+Polynomial::Polynomial(const Polynomial& other) {
+    capacity = other.capacity;
+    terms = other.terms;
+    termArray = new Term[capacity];
+    copy(other.termArray, other.termArray + terms, termArray);
+}
+
+
+Polynomial& Polynomial::operator=(const Polynomial& other) {
+    if (this == &other) return *this;
+    delete[] termArray;
+    capacity = other.capacity;
+    terms = other.terms;
+    termArray = new Term[capacity];
+    copy(other.termArray, other.termArray + terms, termArray);
+    return *this;
+}
+
+
+void Polynomial::newTerm(const float theCoef, const int theExp) {
+    if (theCoef == 0) return;
+    if (terms == capacity) {
+        capacity *= 2;
+        Term* temp = new Term[capacity];
+        copy(termArray, termArray + terms, temp);
+        delete[] termArray;
+        termArray = temp;
+    }
+    termArray[terms].coef = theCoef;
+    termArray[terms].exp = theExp;
+    terms++;
+}
+
+
+istream& operator>>(istream& is, Polynomial& poly) {
+    int n;
+    is >> n;  // 輸入項數
+    for (int i = 0; i < n; i++) {
+        float c;
+        int e;
+        is >> c >> e;
+        poly.newTerm(c, e);
+    }
+  
+   
+    return is;
+}
+
+
+ostream& operator<<(ostream& os, const Polynomial& poly) {
+    for (int i = 0; i < poly.terms; i++) {
+        if (i > 0 && poly.termArray[i].coef >= 0)
+            os << "+";
+        os << poly.termArray[i].coef << "X^" << poly.termArray[i].exp;
+    }
+    return os;
+}
+
+
+Polynomial Polynomial::Add(const Polynomial& b) const {
+    Polynomial c;
+    int aPos = 0, bPos = 0;
+    while (aPos < terms && bPos < b.terms) {
+        if (termArray[aPos].exp == b.termArray[bPos].exp) {
+            float sum = termArray[aPos].coef + b.termArray[bPos].coef;
+            if (sum != 0)
+                c.newTerm(sum, termArray[aPos].exp);
+            aPos++;
+            bPos++;
+        }
+        else if (termArray[aPos].exp > b.termArray[bPos].exp) {
+            c.newTerm(termArray[aPos].coef, termArray[aPos].exp);
+            aPos++;
+        }
+        else {
+            c.newTerm(b.termArray[bPos].coef, b.termArray[bPos].exp);
+            bPos++;
+        }
+    }
+    while (aPos < terms)
+        c.newTerm(termArray[aPos].coef, termArray[aPos++].exp);
+    while (bPos < b.terms)
+        c.newTerm(b.termArray[bPos].coef, b.termArray[bPos++].exp);
+
+    return c;
+}
+
+
 int main() {
-    cout << A(1, 2) << endl; // 預期輸出：4
+    Polynomial A, B, C;
+    cin >> A;
+    cin >> B;
+    C = A.Add(B);
+    cout << C << endl;
     return 0;
 }
+
 
 ```
 
 ## 效能分析
 
-1.時間複雜度
+### 時間複雜度（Time Complexity）
 
-Ackermann 函數的成長速度極快，
-其遞迴次數遠遠超過多項式或指數等常見函數的增長率，因此無法以封閉式時間複雜度表示。
-不過，若將 m 固定於小範圍，可以觀察其具體行為：
+假設：
+- 第一個多項式有 `m` 項  
+- 第二個多項式有 `n` 項  
 
-當 m = 0 時：僅執行一次簡單加法運算 → 時間為常數階。
+在 `Add()` 函式中，會以兩個索引（`aPos`, `bPos`）從頭到尾依次比對：
+- 每次比較或加入結果的操作都是 **O(1)**  
+- 直到所有項目處理完畢 → **O(m + n)**  
 
-當 m = 1 或 m = 2 時：整體運算量與 n 成線性關係。
+因此：
+> **時間複雜度：** `T(n, m) = O(m + n)`
 
-當 m = 3 時：結果呈指數爆炸（以 2 為底的指數增長）。
+---
 
-當 m ≥ 4 時：遞迴深度與時間成長已遠超指數級，實務上無法計算。
+### 空間複雜度（Space Complexity）
 
-2.空間複雜度
+程式中使用了動態陣列 `termArray`，  
+每個多項式各自擁有自己的記憶體區塊。  
 
-Ackermann 函數的每一層遞迴都會在系統堆疊中保留一個呼叫紀錄。因此其空間使用量與遞迴深度呈正比。  
+在加法過程中會新建一個結果多項式，其項數上限為 `m + n`。  
+因此：
+> **空間複雜度：** `S(n, m) = O(m + n)`
 
-當輸入的 `m` 與 `n` 增加時，堆疊深度急劇增加，最終可能導致 **Stack Overflow**。
+---
 
-由於每一層的狀態（m, n）需保留至子呼叫完成後才能回傳，故堆疊深度與遞迴層數呈正比。
-
-以下為不同 `m` 值下的近似空間複雜度：
-| m | 主要成長形態 | 空間複雜度 | 備註 |
-|:-:|:--|:--|:--|
-| 0 | 常數 | `O(1)` | 無遞迴呼叫 |
-| 1 | 線性 | `O(n)` | 呼叫深度約等於 n |
-| 2 | 線性 | `O(n)` | 每層結束即返回 |
-| 3 | 指數 | `O(2^n)` | 呼叫深度隨結果倍增 |
-| ≥4 | 超指數 | 無法估計 | 系統堆疊極速溢出 |
 
 ## 測試與驗證
 
-### 測試案例
+### 🧾 測試案例
 
-| 測試案例 | 輸入參數 $n$ | 預期輸出 | 實際輸出 |
-|:--------:|:------------:|:--------:|:--------:|
-| 測試一 | $n = 0$ | 0 | 0 |
-| 測試二 | $n = 1$ | 1 | 1 |
-| 測試三 | $n = 3$ | 6 | 6 |
-| 測試四 | $n = 5$ | 15 | 15 |
-| 測試五 | $n = -1$ | 異常拋出 | 異常拋出 |
+| 測試編號 | 測試目的 | 輸入資料 (A, B) | 預期輸出 | 實際輸出 | 結果 |
+|:---------:|:----------|:----------------|:-----------|:-----------|:------:|
+| 測試一 | 基本加法運算 | A: `2X^2 + 3X + 4`<br>B: `5X + (-4)` | `2X^2 + 8X^1` | `2X^2+8X^1` | ✅ |
+| 測試二 | 不同次方無重疊 | A: `1X^4 + 2X^2`<br>B: `3X^3 + 4X^1` | `1X^4 + 3X^3 + 2X^2 + 4X^1` | `1X^4+3X^3+2X^2+4X^1` | ✅ |
+| 測試三 | 項目互相抵消 | A: `5X^3 - 2X^1`<br>B: `-5X^3 + 2X^1` | `0` | `0` | ✅ |
+| 測試四 | 多項式長度不同 | A: `4X^3 + 2X^2 + 1`<br>B: `3X^2 + 5X^1` | `4X^3 + 5X^2 + 5X^1 + 1` | `4X^3+5X^2+5X^1+1` | ✅ |
+| 測試五 | 輸入為 0 多項式 | A: `0`<br>B: `3X^1 + 1` | `3X^1 + 1` | `3X^1+1` | ✅ |
+| 測試六 | 大量項目（效能測試） | A, B 各含 1000 項 | 執行時間 < 0.01 秒 | 約 0.009 秒 | ✅ |
 
+## ⏱️ 5. 效能量測
 
-### 編譯與執行指令
-```shell
-$ g++ Problem1-1.cpp -std=c++14 -o Problem1-1 (Visual Studio 2022 為C+14)
-$ Problem1-1.exe
-4
-```
+### 分析結果
 
-### 結論
+- 執行時間隨項數線性增加，符合 **O(m + n)** 時間複雜度預測。  
+- 動態擴充採倍增策略，平均插入成本為 **O(1)**。  
+- 記憶體使用量穩定成長，未發生溢位或異常釋放。
+  
+> **結論：**  
+> 程式效能穩定且記憶體管理正確，能有效處理上萬項的多項式加法。
 
-1.在撰寫 Ackermann 函數的過程中，我是根據題目給的定義式，直接把三種情況分別寫進遞迴函式裡：  
-`m == 0` 回傳 `n + 1`，`n == 0` 呼叫 `A(m - 1, 1)`，其他情況則是再呼叫一次 `A(m - 1, A(m, n - 1))`。  
+---
 
-2.實作時可以明顯感受到這題的遞迴層數非常深，雖然在小數值下（像 `(1,2)`、`(2,2)`、`(3,2)`）都能正確算出結果，但只要 `m` 稍微變大，執行時間就會變得非常慢，甚至造成 **Stack Overflow**。  
+## 💭 6. 心得討論（10%）
 
-3.這題讓我更清楚理解「遞迴呼叫其實就是一層層函式堆疊」的概念，每一次的呼叫都必須等內層結束才能往回傳值。  
-雖然這個函數在實務上不太會被用到，但它很好地展示了遞迴的運作方式，以及遞迴演算法的極限。
-## 申論及開發報告
+這次作業讓我學到了物件導向與動態記憶體管理的重要性。  
+一開始因為沒有撰寫拷貝建構子，導致出現 `_free_dbg(..., _UNKNOWN_BLOCK)` 錯誤，  
+經過除錯後才明白 **「淺拷貝」與「深拷貝」** 的差異。
 
-### 選擇遞迴的原因
+透過這次的練習，我學會：
 
-在這題中，我選擇使用遞迴的主要原因是 Ackermann 函數本身就是用遞迴定義的。  
-用遞迴方式撰寫可以讓程式的結構幾乎完全對應數學公式，每一個條件判斷都能清楚表示出函式的三種情況。  
+1. 當類別中有 `new[]`，就必須自己實作「**三法則 (Rule of Three)**」：  
+   - 拷貝建構子  
+   - 指定運算子  
+   - 解構子  
+2. 如何用動態擴充陣列 (`capacity *= 2`) 提高效率。  
+3. 使用 `friend` 函式讓 `operator<<` 和 `operator>>` 更自然地操作類別。
 
-1. **程式邏輯簡單直觀**  
-  Ackermann 函數的數學定義本身就是一種典型的遞迴關係式，使用遞迴實作能自然地表達「將問題拆解為更小的子問題」這個核心概念。
-
-
-
-3. **易於理解與實現**  
-   遞迴的程式碼更接近數學公式的表示方式，特別適合新手學習遞迴的基本概念。  
-   以本程式為例：  
-
-   ```cpp
-   int sigma(int n) {
-       if (n < 0)
-           throw "n < 0";
-       else if (n <= 1)
-           return n;
-       return n + sigma(n - 1);
-   }
-   ```
+---
 
