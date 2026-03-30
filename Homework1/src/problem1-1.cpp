@@ -1,3 +1,4 @@
+// Problem1.cpp
 #include <iostream>
 #include <vector>
 #include <stdexcept>
@@ -16,7 +17,7 @@ public:
 template <class T>
 class MinHeap : public MinPQ<T> {
 private:
-    vector<T> heap;   // 使用 1-based index，heap[0] 不使用
+    vector<T> heap;
 
     void BubbleUp(int index) {
         while (index > 1) {
@@ -96,9 +97,9 @@ int main() {
     h.Push(10);
     h.Push(30);
 
-    cout << h.Top() << endl;   // 10
+    cout << h.Top() << endl;
     h.Pop();
-    cout << h.Top() << endl;   // 20
+    cout << h.Top() << endl;
 
     return 0;
 }
