@@ -416,7 +416,9 @@ int main() {
 
     vector<int> testN = {100, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
 
+    cout << "=== Part (a): Height / log2(n) ===" << endl;
     cout << "n\tHeight/log2(n)" << endl;
+
     for (int i = 0; i < (int)testN.size(); ++i) {
         vector<int> data = GenerateRandomData(testN[i]);
         double ratio = TestBSTHeightRatio(data);
@@ -424,7 +426,7 @@ int main() {
     }
 
     cout << endl;
-    cout << "Delete test:" << endl;
+    cout << "=== Part (b): Delete node in BST ===" << endl;
 
     BST tree;
     tree.Insert(50);
