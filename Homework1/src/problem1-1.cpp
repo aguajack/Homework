@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <vector>
 #include <stdexcept>
@@ -8,10 +7,10 @@ template <class T>
 class MinPQ {
 public:
     virtual ~MinPQ() {}
-    virtual bool IsEmpty() const = 0;   // priority queue 是否為空
-    virtual const T& Top() const = 0;   // 回傳最小元素
-    virtual void Push(const T& x) = 0;  // 插入元素
-    virtual void Pop() = 0;             // 刪除最小元素
+    virtual bool IsEmpty() const = 0;
+    virtual const T& Top() const = 0;
+    virtual void Push(const T& x) = 0;
+    virtual void Pop() = 0;
 };
 
 template <class T>
@@ -32,20 +31,20 @@ private:
     }
 
     void BubbleDown(int index) {
-        int size = heap.size() - 1;
+        int n = (int)heap.size() - 1;
 
-        while (2 * index <= size) {
-            int left = 2 * index;
-            int right = 2 * index + 1;
-            int smallerChild = left;
+        while (index * 2 <= n) {
+            int left = index * 2;
+            int right = left + 1;
+            int smaller = left;
 
-            if (right <= size && heap[right] < heap[left]) {
-                smallerChild = right;
+            if (right <= n && heap[right] < heap[left]) {
+                smaller = right;
             }
 
-            if (heap[smallerChild] < heap[index]) {
-                swap(heap[smallerChild], heap[index]);
-                index = smallerChild;
+            if (heap[smaller] < heap[index]) {
+                swap(heap[smaller], heap[index]);
+                index = smaller;
             } else {
                 break;
             }
@@ -54,10 +53,8 @@ private:
 
 public:
     MinHeap() {
-        heap.push_back(T()); // heap[0] 佔位
+        heap.push_back(T());
     }
-
-    virtual ~MinHeap() {}
 
     bool IsEmpty() const override {
         return heap.size() == 1;
@@ -80,8 +77,8 @@ public:
             throw runtime_error("MinHeap is empty");
         }
 
-        int size = heap.size() - 1;
-        heap[1] = heap[size];
+        int last = (int)heap.size() - 1;
+        heap[1] = heap[last];
         heap.pop_back();
 
         if (!IsEmpty()) {
@@ -99,10 +96,9 @@ int main() {
     h.Push(10);
     h.Push(30);
 
-    cout << "Top = " << h.Top() << endl; // 10
-
+    cout << h.Top() << endl;   // 10
     h.Pop();
-    cout << "Top after Pop = " << h.Top() << endl; // 20
+    cout << h.Top() << endl;   // 20
 
     return 0;
 }
