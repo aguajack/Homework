@@ -405,8 +405,8 @@ Graph graph(7, false);
 
 | 成員 | 負責內容 |
 |------|----------|
-| 41343147 | 負責 Graph 類別設計、Adjacency Matrix 建立、DFS、BFS、Connected Components 程式實作，以及主程式整合。 |
-| 周子新 | 負責 Dijkstra 最短路徑演算法、測試資料設計、執行結果確認、README 報告整理與 GitHub 專案排版。 |
+| 41343147 鄭亦閔| 負責 Graph 類別設計、Adjacency Matrix 建立、DFS、BFS、Connected Components 程式實作，以及主程式整合。 |
+| 41343115 周子新| 負責 Dijkstra 最短路徑演算法、測試資料設計、執行結果確認、README 報告整理與 GitHub 專案排版。 |
 
 ### 開發過程遇到的問題與解決方式
 
