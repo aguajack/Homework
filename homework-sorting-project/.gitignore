@@ -1,0 +1,25 @@
+# Build output
+sorting_project
+sorting_project.exe
+*.o
+*.obj
+*.out
+*.exe
+
+# IDE / editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary files
+*.tmp
+*.log

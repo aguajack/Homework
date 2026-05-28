@@ -1,0 +1,23 @@
+Compile command:
+make
+
+Run command:
+./sorting_project
+
+Result:
+Correctness test passed.
+All experiments completed.
+
+Output CSV files:
+data/worst_case_results.csv
+data/average_case_results.csv
+
+Output chart files:
+charts/worst_case_chart.png
+charts/average_case_chart.png
+
+Runtime unit:
+milliseconds
+
+Note:
+These results were measured in the ChatGPT execution environment. Results may be different on another computer.
