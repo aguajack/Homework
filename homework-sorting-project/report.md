@@ -348,15 +348,15 @@ Average-case 測試使用隨機排列資料。
 
 | 圖表 | 檔案位置 |
 |---|---|
-| Worst-case Runtime Chart | `charts/worst_case_chart.png` |
-| Average-case Runtime Chart | `charts/average_case_chart.png` |
+| Worst-case Runtime Chart | `output/worst_case_chart.png` |
+| Average-case Runtime Chart | `output/average_case_chart.png` |
 
 在 GitHub 的 README 中可以使用以下語法顯示圖表：
 
 ```markdown
-![Worst Case Runtime](charts/worst_case_chart.png)
+![Worst Case Runtime](output/worst_case_chart.png)
 
-![Average Case Runtime](charts/average_case_chart.png)
+![Average Case Runtime](output/average_case_chart.png)
 ```
 
 ---
